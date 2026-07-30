@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.forgemeshlabs/library-mcp",
+  "description": "A paid public-domain knowledge base for AI agents: full-text search, book metadata, chapters, quotes, flagship ask-a-book retrieval, and curated subject shelves via x402.",
+  "repository": {
+    "url": "https://github.com/forgemeshlabs/library-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@forgemeshlabs/library-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "WALLET_PRIVATE_KEY",
+          "description": "Dedicated low-balance Base wallet private key for x402 USDC micropayments. Required for all 8 tools (there are no free tools in this package). Never use your primary wallet.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "LIBRARY_BASE_URL",
+          "description": "Library API origin override. Defaults to https://library.forgemesh.io.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "title": "ForgeMesh Library MCP",
+  "websiteUrl": "https://library.forgemesh.io",
+  "icons": [
+    {
+      "src": "https://library.forgemesh.io/favicon.ico",
+      "mimeType": "image/png"
+    }
+  ]
+}

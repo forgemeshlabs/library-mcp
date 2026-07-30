@@ -1,0 +1,30 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      libraryBaseUrl:
+        type: string
+        description: >-
+          Library API origin override. Defaults to
+          https://library.forgemesh.io.
+      walletPrivateKey:
+        type: string
+        description: >-
+          Dedicated low-balance Base wallet private key for x402 USDC
+          micropayments. Required — every tool in this package is paid
+          (prices $0.001-$0.02). Never use your primary wallet.
+    required:
+      - walletPrivateKey
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@forgemeshlabs/library-mcp'],
+      env: {
+        ...(config.libraryBaseUrl ? { LIBRARY_BASE_URL: config.libraryBaseUrl } : {}),
+        WALLET_PRIVATE_KEY: config.walletPrivateKey
+      }
+    })
+  exampleConfig:
+    libraryBaseUrl: 'https://library.forgemesh.io'
+    walletPrivateKey: '0x...'

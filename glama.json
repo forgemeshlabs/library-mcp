@@ -1,0 +1,30 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "name": "@forgemeshlabs/library-mcp",
+  "description": "A paid public-domain knowledge base for AI agents: full-text search, book metadata, chapters, quotes, flagship ask-a-book retrieval, and curated subject shelves via x402.",
+  "maintainers": [
+    "clawdbotworker"
+  ],
+  "build": {
+    "steps": [
+      "npm ci --omit=dev"
+    ],
+    "cmd": [
+      "node",
+      "index.js"
+    ]
+  },
+  "placeholderArguments": {},
+  "tags": [
+    "x402",
+    "usdc",
+    "base",
+    "library",
+    "books",
+    "public-domain",
+    "education",
+    "retrieval",
+    "mcp",
+    "autonomous-agents"
+  ]
+}
