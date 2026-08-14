@@ -2,3 +2,6 @@ node_modules/
 .env
 *.log
 *.tgz
+CLAUDE.md
+CONTEXT.md
+REFERENCES.md
