@@ -11,7 +11,7 @@ const { privateKeyToAccount } = require("viem/accounts");
 const { createPublicClient, http } = require("viem");
 const { base } = require("viem/chains");
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.3";
 const BASE_URL = (process.env.LIBRARY_BASE_URL || "https://library.forgemesh.io").replace(/\/$/, "");
 const BASE_RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
 
@@ -81,6 +81,12 @@ const FLAGSHIP_LIST_TEXT = FLAGSHIP_BOOKS.map((e) => e.aliases[0]).join(", ");
 const TOOLS = [
   {
     name: "search_literature",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "PREMIUM full-text search across the entire indexed public-domain corpus (17k+ books and growing). Returns the most relevant passages from ANY book, ranked by relevance, with title/author citations. Retrieval only — real cited passages, never LLM-generated or summarized. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -94,6 +100,12 @@ const TOOLS = [
   },
   {
     name: "search_books",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Search the indexed public-domain book corpus by title or author substring, e.g. 'Dickens' or 'Frankenstein'. Returns matching books ranked by historical popularity with book_id for drill-down into metadata, chapters, quotes, or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -107,6 +119,12 @@ const TOOLS = [
   },
   {
     name: "get_book_metadata",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Full metadata for one indexed book by book_id: title, author, year, subjects, bookshelves, download rank, chunk count, and detected chapter range. Use search_books first to find a book_id. Costs $0.002 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -119,6 +137,12 @@ const TOOLS = [
   },
   {
     name: "get_chapter",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Full text of one chapter from an indexed book by book_id and chapter number. Chapter 0 is front matter before the first detected heading. Use get_book_metadata for the valid chapter range. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -132,6 +156,12 @@ const TOOLS = [
   },
   {
     name: "get_quotes",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Notable passages from one indexed book by book_id. Pass an optional theme to full-text search within that book, or omit it for a sample of short dialogue-bearing lines. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -146,6 +176,12 @@ const TOOLS = [
   },
   {
     name: "ask_book",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       `Ask a natural-language question about one of the flagship books and get back the most relevant passages from the book itself, with chapter/location citations. Retrieval only — never a generated summary. Pass any recognizable name for "book" (e.g. "Moby Dick", "the Odyssey") — it resolves to the matching route. Available flagship books: ${FLAGSHIP_LIST_TEXT}. Costs $0.01 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).`,
     inputSchema: {
@@ -160,6 +196,12 @@ const TOOLS = [
   },
   {
     name: "browse_shelf",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 100+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'). Returns a ranked list of books with book_id for drill-down. Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.003 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
@@ -172,6 +214,12 @@ const TOOLS = [
   },
   {
     name: "book_of_the_day",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Costs $0.001 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {

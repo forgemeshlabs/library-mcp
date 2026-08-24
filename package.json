@@ -1,6 +1,6 @@
 {
   "name": "@forgemeshlabs/library-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "ForgeMesh Library, by ForgeMesh Labs — a paid public-domain knowledge base for AI agents. Full-text search, book metadata, chapters, quotes, flagship ask-a-book retrieval Q&A, and 100+ curated subject shelves over a growing corpus of public-domain books (17k+ toward ~62k). $0.001-$0.02 per call via x402 USDC micropayments, no API key, no account. Retrieval only — real cited passages, never LLM-generated.",
   "main": "index.js",
   "bin": {
