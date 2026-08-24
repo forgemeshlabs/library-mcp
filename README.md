@@ -1,5 +1,7 @@
 # ForgeMesh Library — Public-Domain Knowledge Base for AI Agents
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/forgemeshlabs-library-mcp-1vv5ne)](https://m8ven.ai/mcp/forgemeshlabs-library-mcp-1vv5ne)
+
 *A [ForgeMesh Labs](https://forgemesh.io) product.*
 
 **A paid public-domain knowledge base, built for agents.** Full-text search, book metadata, chapters, notable quotes, flagship "ask this book a question" retrieval, and 100+ curated subject shelves over a growing corpus of public-domain books — no license, no API key, no account. Pay per call in USDC on Base via [x402](https://x402.org).
