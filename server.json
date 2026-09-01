@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.forgemeshlabs/library-mcp",
-  "description": "A paid public-domain knowledge base for AI agents: full-text search, book metadata, chapters, quotes, flagship ask-a-book retrieval, and curated subject shelves via x402.",
+  "description": "A paid public-domain knowledge base for AI agents: full-text search, book metadata, chapters.",
   "repository": {
     "url": "https://github.com/forgemeshlabs/library-mcp",
     "source": "github"
   },
-  "version": "0.1.3",
+  "version": "0.1.4",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@forgemeshlabs/library-mcp",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "transport": {
         "type": "stdio"
       },
@@ -37,8 +37,11 @@
   "websiteUrl": "https://library.forgemesh.io",
   "icons": [
     {
-      "src": "https://library.forgemesh.io/favicon.ico",
-      "mimeType": "image/png"
+      "src": "https://forgemesh.io/favicon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "1254x1254"
+      ]
     }
   ]
 }
