@@ -1,6 +1,7 @@
 # ForgeMesh Library — Public-Domain Knowledge Base for AI Agents
 
 [![M8ven Score](https://m8ven.ai/badge/mcp/forgemeshlabs-library-mcp-1vv5ne)](https://m8ven.ai/mcp/forgemeshlabs-library-mcp-1vv5ne)
+[![mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/forgemeshlabs/library-mcp)
 
 *A [ForgeMesh Labs](https://forgemesh.io) product.*
 
