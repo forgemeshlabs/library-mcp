@@ -11,7 +11,7 @@ const { privateKeyToAccount } = require("viem/accounts");
 const { createPublicClient, http } = require("viem");
 const { base } = require("viem/chains");
 
-const VERSION = "0.1.3";
+const VERSION = "0.1.4";
 const BASE_URL = (process.env.LIBRARY_BASE_URL || "https://library.forgemesh.io").replace(/\/$/, "");
 const BASE_RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
 
