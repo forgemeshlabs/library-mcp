@@ -3,11 +3,6 @@ startCommand:
   configSchema:
     type: object
     properties:
-      libraryBaseUrl:
-        type: string
-        description: >-
-          Library API origin override. Defaults to
-          https://library.forgemesh.io.
       walletPrivateKey:
         type: string
         description: >-
@@ -21,10 +16,8 @@ startCommand:
       command: 'npx',
       args: ['-y', '@forgemeshlabs/library-mcp'],
       env: {
-        ...(config.libraryBaseUrl ? { LIBRARY_BASE_URL: config.libraryBaseUrl } : {}),
         WALLET_PRIVATE_KEY: config.walletPrivateKey
       }
     })
   exampleConfig:
-    libraryBaseUrl: 'https://library.forgemesh.io'
     walletPrivateKey: '0x...'

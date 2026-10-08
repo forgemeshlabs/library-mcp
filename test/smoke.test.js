@@ -10,7 +10,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { generatePrivateKey } = require("viem/accounts");
-const { TOOLS, resolveFlagshipBook, slugify, FLAGSHIP_BOOKS, buildBaseHttpClient } = require("../index.js");
+const { TOOLS, validateArgs, resolveFlagshipBook, slugify, FLAGSHIP_BOOKS, buildBaseHttpClient } = require("../index.js");
 
 const BASE_URL = process.env.LIBRARY_BASE_URL || "https://library.forgemesh.io";
 const EXPECTED_TOOL_NAMES = [
@@ -70,6 +70,15 @@ test("FLAGSHIP_BOOKS has 24 entries, all with unique slugs", () => {
   assert.equal(FLAGSHIP_BOOKS.length, 24);
   const slugs = FLAGSHIP_BOOKS.map((b) => b.slug);
   assert.equal(new Set(slugs).size, slugs.length);
+});
+
+test("validateArgs rejects bad input before any network call", () => {
+  assert.doesNotThrow(() => validateArgs("get_chapter", { book_id: 2701, chapter: 3 }));
+  assert.throws(() => validateArgs("get_chapter", { book_id: "2701", chapter: 3 }), /integer/);
+  assert.throws(() => validateArgs("search_books", { query: "x".repeat(2001) }), /string up to/);
+  assert.throws(() => validateArgs("search_literature", { query: "q", limit: 500 }), /between/);
+  assert.throws(() => validateArgs("book_of_the_day", { date: "yesterday" }), /format/);
+  assert.throws(() => validateArgs("get_quotes", {}), /Missing required/);
 });
 
 // --- Live checks against the real service (network required, no payments) ---

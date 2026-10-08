@@ -8,12 +8,17 @@ const { x402Client, x402HTTPClient } = require("@x402/core/client");
 const { ExactEvmScheme } = require("@x402/evm/exact/client");
 const { toClientEvmSigner } = require("@x402/evm");
 const { privateKeyToAccount } = require("viem/accounts");
-const { createPublicClient, http } = require("viem");
-const { base } = require("viem/chains");
+const { createGuard } = require("./x402-guard");
 
-const VERSION = "0.1.4";
-const BASE_URL = (process.env.LIBRARY_BASE_URL || "https://library.forgemesh.io").replace(/\/$/, "");
-const BASE_RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
+const VERSION = require("./package.json").version;
+const BASE_URL = "https://library.forgemesh.io";
+// Highest listed price is $0.02; the guard refuses to sign for any other payee, network, asset, or higher amount.
+const guard = createGuard({
+  baseUrl: BASE_URL,
+  payTo: ["0x85df5380DEbe236AD6BF49dE788243924B080267"],
+  maxPriceUsd: 0.02,
+  sessionBudgetUsd: 10,
+});
 
 // Flagship /ask-<book> routes. Each entry maps a slug to the aliases an agent
 // is likely to type. Kept as a lookup table because these ~24 routes are
@@ -92,8 +97,8 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "Full-text search query, e.g. 'the nature of justice'" },
-        limit: { type: "integer", description: "Max passages to return (default 10, max 30)" },
+        query: { type: "string", maxLength: 2000, description: "Full-text search query, e.g. 'the nature of justice'" },
+        limit: { type: "integer", minimum: 1, maximum: 30, description: "Max passages to return (default 10, max 30)" },
       },
       required: ["query"],
     },
@@ -111,8 +116,8 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "Title or author substring" },
-        limit: { type: "integer", description: "Max results (default 10, max 50)" },
+        query: { type: "string", maxLength: 2000, description: "Title or author substring" },
+        limit: { type: "integer", minimum: 1, maximum: 50, description: "Max results (default 10, max 50)" },
       },
       required: ["query"],
     },
@@ -130,7 +135,7 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        book_id: { type: "integer", description: "Gutenberg book id, from search_books" },
+        book_id: { type: "integer", minimum: 1, maximum: 10000000, description: "Gutenberg book id, from search_books" },
       },
       required: ["book_id"],
     },
@@ -148,8 +153,8 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        book_id: { type: "integer", description: "Gutenberg book id" },
-        chapter: { type: "integer", description: "Chapter number (0 = front matter)" },
+        book_id: { type: "integer", minimum: 1, maximum: 10000000, description: "Gutenberg book id" },
+        chapter: { type: "integer", minimum: 0, maximum: 100000, description: "Chapter number (0 = front matter)" },
       },
       required: ["book_id", "chapter"],
     },
@@ -167,9 +172,9 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        book_id: { type: "integer", description: "Gutenberg book id" },
-        theme: { type: "string", description: "Optional theme/keyword to search for within the book" },
-        limit: { type: "integer", description: "Max quotes to return (default 5)" },
+        book_id: { type: "integer", minimum: 1, maximum: 10000000, description: "Gutenberg book id" },
+        theme: { type: "string", maxLength: 200, description: "Optional theme/keyword to search for within the book" },
+        limit: { type: "integer", minimum: 1, maximum: 50, description: "Max quotes to return (default 5)" },
       },
       required: ["book_id"],
     },
@@ -187,9 +192,9 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        book: { type: "string", description: `Book name, e.g. one of: ${FLAGSHIP_LIST_TEXT}` },
-        question: { type: "string", description: "Your question about the book" },
-        limit: { type: "integer", description: "Max passages (default 5, max 15)" },
+        book: { type: "string", maxLength: 200, description: `Book name, e.g. one of: ${FLAGSHIP_LIST_TEXT}` },
+        question: { type: "string", maxLength: 2000, description: "Your question about the book" },
+        limit: { type: "integer", minimum: 1, maximum: 15, description: "Max passages (default 5, max 15)" },
       },
       required: ["book", "question"],
     },
@@ -207,7 +212,7 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        shelf: { type: "string", description: "Shelf name or slug, e.g. 'gothic horror' or 'russian-literature'" },
+        shelf: { type: "string", maxLength: 100, description: "Shelf name or slug, e.g. 'gothic horror' or 'russian-literature'" },
       },
       required: ["shelf"],
     },
@@ -225,7 +230,7 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        date: { type: "string", description: "Optional ISO date (YYYY-MM-DD) to replay a past day's pick" },
+        date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Optional ISO date (YYYY-MM-DD) to replay a past day's pick" },
       },
     },
   },
@@ -240,70 +245,31 @@ function buildBaseHttpClient() {
   }
   const pk = key.startsWith("0x") ? key : "0x" + key;
   const account = privateKeyToAccount(pk);
-  const coreClient = new x402Client().register("eip155:*", new ExactEvmScheme(toClientEvmSigner(account)));
+  const coreClient = new x402Client().register("eip155:*", new ExactEvmScheme(toClientEvmSigner(account))).registerPolicy(guard.policy);
   return { httpClient: new x402HTTPClient(coreClient), account };
 }
 
-// x402 derives EIP-3009 validity windows from Date.now; choose a timestamp
-// valid for both Base block time and facilitator wall-clock checks (clock-skew fix).
-async function createChainTimedPaymentPayload(httpClient, paymentRequired) {
-  try {
-    const publicClient = createPublicClient({ chain: base, transport: http(BASE_RPC_URL) });
-    const block = await publicClient.getBlock();
-    const chainNow = Number(block.timestamp);
-    const originalNow = Date.now;
-    const localNow = Math.floor(originalNow() / 1000);
-    const timeout = Number(paymentRequired.accepts?.[0]?.maxTimeoutSeconds || 300);
-    const lowerBound = localNow + 30 - timeout;
-    const upperBound = chainNow + 600;
-    const signingNow = Math.min(Math.max(chainNow, lowerBound), upperBound);
-    Date.now = () => signingNow * 1000;
-    try {
-      return await httpClient.createPaymentPayload(paymentRequired);
-    } finally {
-      Date.now = originalNow;
+// Validate arguments against the tool's own inputSchema before any network call or payment.
+function validateArgs(name, args) {
+  const tool = TOOLS.find((t) => t.name === name);
+  if (!tool) throw new Error(`Unknown tool: ${name}`);
+  if (args === null || typeof args !== "object" || Array.isArray(args)) throw new Error("arguments must be an object");
+  for (const key of tool.inputSchema.required || []) if (args[key] === undefined) throw new Error(`Missing required argument: ${key}`);
+  for (const [key, spec] of Object.entries(tool.inputSchema.properties)) {
+    const v = args[key];
+    if (v === undefined) continue;
+    if (spec.type === "string") {
+      if (typeof v !== "string" || v.length > (spec.maxLength || 2000)) throw new Error(`Invalid ${key}: expected string up to ${spec.maxLength || 2000} chars`);
+      if (spec.pattern && !new RegExp(spec.pattern).test(v)) throw new Error(`Invalid ${key}: unexpected format`);
+    } else if (spec.type === "integer") {
+      if (!Number.isInteger(v)) throw new Error(`Invalid ${key}: expected integer`);
+      if (v < spec.minimum || v > spec.maximum) throw new Error(`Invalid ${key}: must be between ${spec.minimum} and ${spec.maximum}`);
     }
-  } catch (_) {
-    return httpClient.createPaymentPayload(paymentRequired);
   }
 }
 
-async function paidPost(ctx, path, body) {
-  const { httpClient } = ctx;
-  const url = BASE_URL + path;
-  const init = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) };
-  const res = await fetch(url, init);
-
-  if (res.status === 402) {
-    let challengeBody;
-    try {
-      challengeBody = await res.clone().json();
-    } catch (_) {}
-    const paymentRequired = httpClient.getPaymentRequiredResponse((name) => res.headers.get(name), challengeBody);
-    const paymentPayload = await createChainTimedPaymentPayload(httpClient, paymentRequired);
-    const paidRes = await fetch(url, {
-      ...init,
-      headers: { ...init.headers, ...httpClient.encodePaymentSignatureHeader(paymentPayload) },
-    });
-    if (!paidRes.ok) {
-      const errBody = await paidRes.text().catch(() => paidRes.statusText);
-      throw new Error(`HTTP ${paidRes.status}: ${errBody.slice(0, 300)}`);
-    }
-    const data = await paidRes.json();
-    try {
-      const settleResponse = httpClient.getPaymentSettleResponse((name) => paidRes.headers.get(name));
-      if (settleResponse && data && typeof data === "object" && !Array.isArray(data)) {
-        return { ...data, _payment: settleResponse };
-      }
-    } catch (_) {}
-    return data;
-  }
-
-  if (!res.ok) {
-    const errBody = await res.text().catch(() => res.statusText);
-    throw new Error(`HTTP ${res.status}: ${errBody.slice(0, 300)}`);
-  }
-  return res.json();
+function paidPost(ctx, path, body) {
+  return guard.callPaid(ctx.httpClient, path, { method: "POST", body: body || {} });
 }
 
 async function main() {
@@ -320,6 +286,7 @@ async function main() {
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const { name, arguments: args = {} } = req.params;
     try {
+      validateArgs(name, args);
       let data;
       switch (name) {
         case "search_literature":
@@ -365,7 +332,7 @@ async function main() {
         }
         case "browse_shelf": {
           const shelfSlug = slugify(args.shelf);
-          if (!shelfSlug) throw new Error("shelf is required");
+          if (!/^[a-z0-9-]{1,100}$/.test(shelfSlug)) throw new Error("shelf must contain letters or digits");
           data = await paidPost(await getPaymentContext(), `/${shelfSlug}`, {});
           break;
         }
@@ -383,7 +350,7 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`library-mcp v${VERSION} ready — ${BASE_URL}`);
+  console.error(`library-mcp v${VERSION} ready`);
 }
 
 if (require.main === module) {
@@ -393,4 +360,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { TOOLS, resolveFlagshipBook, slugify, FLAGSHIP_BOOKS, buildBaseHttpClient };
+module.exports = { TOOLS, validateArgs, resolveFlagshipBook, slugify, FLAGSHIP_BOOKS, buildBaseHttpClient };
