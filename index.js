@@ -131,7 +131,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Full metadata for one indexed book by book_id: title, author, year, subjects, bookshelves, download rank, chunk count, and detected chapter range. Use search_books first to find a book_id. Costs $0.002 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Full metadata for one indexed book by book_id: title, author, year, subjects, bookshelves, download rank, chunk count, and detected chapter range. Use search_books first to find a book_id. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -208,7 +208,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 100+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'). Returns a ranked list of books with book_id for drill-down. Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.003 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 100+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'). Returns a ranked list of books with book_id for drill-down. Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -226,7 +226,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Costs $0.001 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {

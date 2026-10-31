@@ -37,12 +37,12 @@ Node.js 20+ and a dedicated, low-balance Base wallet funded with USDC. The serve
 |---|---|---|
 | `search_literature` | $0.02 | Full-text search across the entire corpus — real passages, any book |
 | `search_books` | $0.005 | Search the corpus by title or author substring |
-| `get_book_metadata` | $0.002 | Title, author, year, subjects, bookshelves, chapter range for a book_id |
+| `get_book_metadata` | $0.005 | Title, author, year, subjects, bookshelves, chapter range for a book_id |
 | `get_chapter` | $0.005 | Full text of one chapter by book_id + chapter number |
 | `get_quotes` | $0.005 | Notable passages from a book, optionally themed |
 | `ask_book` | $0.01 | Ask a flagship book (Moby Dick, the Republic, Sherlock Holmes...) a question, get cited passages back |
-| `browse_shelf` | $0.003 | Browse a curated category or subject shelf (gothic horror, Russian literature, detective fiction, 100+ shelves) |
-| `book_of_the_day` | $0.001 | Deterministic daily book pick, date-seeded |
+| `browse_shelf` | $0.005 | Browse a curated category or subject shelf (gothic horror, Russian literature, detective fiction, 100+ shelves) |
+| `book_of_the_day` | $0.005 | Deterministic daily book pick, date-seeded |
 
 Prices are set by the live service and may change — the actual charge always comes from the x402 402 challenge at call time, not this table.
 
