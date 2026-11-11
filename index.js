@@ -93,7 +93,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "PREMIUM full-text search across the entire indexed public-domain corpus (17k+ books and growing). Returns the most relevant passages from ANY book, ranked by relevance, with title/author citations. Retrieval only — real cited passages, never LLM-generated or summarized. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Literature search: full-text search across 61,000+ public-domain books (Project Gutenberg corpus). Returns the most relevant complete passages from any book, ranked, with title, author, section and source link. Retrieval only: real cited passages, never LLM-generated text. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -112,7 +112,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Search the indexed public-domain book corpus by title or author substring, e.g. 'Dickens' or 'Frankenstein'. Returns matching books ranked by historical popularity with book_id for drill-down into metadata, chapters, quotes, or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Book search: find public-domain books by title or author substring, e.g. 'Dickens' or 'Frankenstein', across 61,000+ indexed Project Gutenberg books. Returns matching books ranked by download popularity with book_id for drill-down into metadata, chapters, quotes or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
