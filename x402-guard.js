@@ -99,6 +99,18 @@ function createGuard(opts) {
     }
   }
 
+  // Surface the service's own refusal: HTTP status, charged flag (from the body, else whether a settlement receipt exists), reason text.
+  function refusalError(res, httpClient, paidAttempt) {
+    let body; try { body = JSON.parse(res.text); } catch { body = undefined; }
+    let charged;
+    if (body && typeof body === "object" && typeof body.charged === "boolean") charged = body.charged;
+    else if (!paidAttempt) charged = false;
+    else { let settle = null; try { settle = httpClient.getPaymentSettleResponse((n) => res.headers.get(n)) || null; } catch { settle = null; } charged = settle ? true : "unknown (no settlement receipt)"; }
+    const reason = body && typeof body === "object" ? (body.error || body.reason || body.message || body.invalidReason) : undefined;
+    const detail = reason ? (typeof reason === "string" ? reason : JSON.stringify(reason)) : res.text.slice(0, 500);
+    return new Error(`HTTP ${res.status} (charged:${charged}): ${detail}`);
+  }
+
   function parseJson(res) {
     try { return JSON.parse(res.text); } catch { throw new Error(`HTTP ${res.status}: non-JSON response`); }
   }
@@ -111,7 +123,7 @@ function createGuard(opts) {
     const init = { method, headers: { ...headers, ...(body ? { "content-type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) };
     const res = await fetchBounded(url, init);
     if (res.status !== 402) {
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.text.slice(0, 200)}`);
+      if (!res.ok) throw refusalError(res, httpClient, false);
       return parseJson(res);
     }
     let challenge;
@@ -119,7 +131,7 @@ function createGuard(opts) {
     const paymentRequired = httpClient.getPaymentRequiredResponse((n) => res.headers.get(n), challenge);
     const payload = await httpClient.createPaymentPayload(paymentRequired); // policy runs (and reserves budget) inside
     const paid = await fetchBounded(url, { ...init, headers: { ...init.headers, ...httpClient.encodePaymentSignatureHeader(payload) } });
-    if (!paid.ok) throw new Error(`Payment failed — HTTP ${paid.status}: ${paid.text.slice(0, 200)}`);
+    if (!paid.ok) throw refusalError(paid, httpClient, true);
     let settle = null;
     try { settle = httpClient.getPaymentSettleResponse((n) => paid.headers.get(n)) || null; } catch { settle = null; }
     const contentType = paid.headers.get("content-type") || "";

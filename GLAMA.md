@@ -48,7 +48,7 @@ explicitly asks for the wrapped command.
 
 Canonical env schema belongs in `server.json`, not `glama.json`.
 
-- `WALLET_PRIVATE_KEY` - required for the paid tools (all 8). A dedicated low-balance Base wallet.
+- `WALLET_PRIVATE_KEY` - required for the paid tools (all 9). A dedicated low-balance Base wallet.
 - `X402_MAX_PRICE_USD`, `X402_SESSION_BUDGET_USD` - optional; can only lower the built-in caps ($0.02 per call, $10 per session).
 
 ## Dockerfile

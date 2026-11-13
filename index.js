@@ -21,9 +21,9 @@ const guard = createGuard({
 });
 
 // Flagship /ask-<book> routes. Each entry maps a slug to the aliases an agent
-// is likely to type. Kept as a lookup table because these ~24 routes are
-// hand-curated; the 111 category/subject shelves are NOT enumerated here on
-// purpose — the corpus is actively growing (17k+ books toward ~62k) and shelf
+// is likely to type. Kept as a lookup table because these 24 routes are
+// hand-curated; the 270+ category/subject shelves are NOT enumerated here on
+// purpose — the corpus is actively growing (61,000+ books) and shelf
 // membership shifts with it, so browse_shelf resolves against live discovery.
 const FLAGSHIP_BOOKS = [
   { slug: "alice-in-wonderland", aliases: ["alice in wonderland", "alice's adventures in wonderland", "alice"] },
@@ -93,11 +93,11 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Literature search: full-text search across 61,000+ public-domain books (Project Gutenberg corpus). Returns the most relevant complete passages from any book, ranked, with title, author, section and source link. Retrieval only: real cited passages, never LLM-generated text. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Literature search: full-text search across 61,000+ public-domain books (Project Gutenberg corpus). Pass 1 to 8 search words (all must appear in one passage). Returns ranked complete passages with book_id, title, author, section, passage location and Gutenberg source_url; ranks the first 400 matching candidates. Retrieval only: real cited passages, never LLM-generated text. No match answers 404 and is not charged. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
-        query: { type: "string", maxLength: 2000, description: "Full-text search query, e.g. 'the nature of justice'" },
+        query: { type: "string", maxLength: 200, description: "1 to 8 distinct search words (filler words ignored), max 200 characters, e.g. 'the nature of justice'" },
         limit: { type: "integer", minimum: 1, maximum: 30, description: "Max passages to return (default 10, max 30)" },
       },
       required: ["query"],
@@ -112,7 +112,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Book search: find public-domain books by title or author substring, e.g. 'Dickens' or 'Frankenstein', across 61,000+ indexed Project Gutenberg books. Returns matching books ranked by download popularity with book_id for drill-down into metadata, chapters, quotes or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Book search: find public-domain books by title or author substring, e.g. 'Dickens' or 'Frankenstein', across 61,000+ indexed Project Gutenberg books. Returns matching books ranked by download popularity: book_id, title, author, Gutenberg release year, download_count and subjects; use book_id for metadata, chapters, quotes or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -131,7 +131,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Full metadata for one indexed book by book_id: title, author, year, subjects, bookshelves, download rank, chunk count, and detected chapter range. Use search_books first to find a book_id. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Full metadata for one indexed book by book_id: title, author, Gutenberg ebook release year (not original publication year), subjects, bookshelves, download count, and detected section range (front matter reported separately; section indices may differ from printed chapters). Use search_books first to find a book_id. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -168,13 +168,13 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Notable passages from one indexed book by book_id. Pass an optional theme to full-text search within that book, or omit it for a sample of short dialogue-bearing lines. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Notable passages from one indexed book by book_id. Pass an optional theme to full-text search within that book, or omit it for a sample of short dialogue-bearing passages. Real excerpts, never generated or paraphrased. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
         book_id: { type: "integer", minimum: 1, maximum: 10000000, description: "Gutenberg book id" },
         theme: { type: "string", maxLength: 200, description: "Optional theme/keyword to search for within the book" },
-        limit: { type: "integer", minimum: 1, maximum: 50, description: "Max quotes to return (default 5)" },
+        limit: { type: "integer", minimum: 1, maximum: 20, description: "Max passages (default 5, max 20)" },
       },
       required: ["book_id"],
     },
@@ -208,7 +208,7 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 100+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'). Returns a ranked list of books with book_id for drill-down. Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 270+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'); shelf book counts are generated from the live index. Returns count, total_in_shelf and a ranked list of books with book_id for drill-down. An unknown shelf is refused with 404 (not charged). Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
@@ -226,13 +226,25 @@ const TOOLS = [
       openWorldHint: true,
     },
     description:
-      "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+      "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Returns book_id and drill-down routes. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
     inputSchema: {
       type: "object",
       properties: {
         date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Optional ISO date (YYYY-MM-DD) to replay a past day's pick" },
       },
     },
+  },
+  {
+    name: "library_card",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    description:
+      "Mint a soulbound Reader's Card NFT (ERC-721) on Base mainnet to the wallet that pays this call (the WALLET_PRIVATE_KEY wallet). Returns patron_number, token_id, holder, contract, network, explorer link and the mint transaction. One card per wallet: a wallet that already holds one gets its existing patron number back, no second mint. Payment settles first, then the card is minted; if a mint fails after payment, the next call from that wallet mints without another charge. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+    inputSchema: { type: "object", properties: {} },
   },
 ];
 
@@ -338,6 +350,9 @@ async function main() {
         }
         case "book_of_the_day":
           data = await paidPost(await getPaymentContext(), "/book-of-the-day", { date: args.date });
+          break;
+        case "library_card":
+          data = await paidPost(await getPaymentContext(), "/library-card", {});
           break;
         default:
           throw new Error(`Unknown tool: ${name}`);

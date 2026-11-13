@@ -22,9 +22,10 @@ const EXPECTED_TOOL_NAMES = [
   "ask_book",
   "browse_shelf",
   "book_of_the_day",
+  "library_card",
 ];
 
-test("exposes exactly the 8 expected tools", () => {
+test("exposes exactly the 9 expected tools", () => {
   const names = TOOLS.map((t) => t.name).sort();
   assert.deepEqual(names, [...EXPECTED_TOOL_NAMES].sort());
 });
@@ -42,7 +43,7 @@ test("every tool has a name, description, and object inputSchema", () => {
 
 test("paid tools declare a required field (no tool silently accepts empty input except book_of_the_day)", () => {
   for (const tool of TOOLS) {
-    if (tool.name === "book_of_the_day") continue; // all args optional by design
+    if (tool.name === "book_of_the_day" || tool.name === "library_card") continue; // all args optional by design
     assert.ok(
       Array.isArray(tool.inputSchema.required) && tool.inputSchema.required.length > 0,
       `${tool.name} has no required fields`
@@ -83,7 +84,7 @@ test("validateArgs rejects bad input before any network call", () => {
 
 // --- Live checks against the real service (network required, no payments) ---
 
-test("live: llms.txt discovery doc is reachable and mentions all 8 tool routes", async () => {
+test("live: llms.txt discovery doc is reachable and mentions the tool routes", async () => {
   const res = await fetch(`${BASE_URL}/llms.txt`);
   assert.equal(res.status, 200);
   const text = await res.text();
@@ -139,4 +140,10 @@ test("live: an unrecognized shelf slug 402s just like a valid one (server decide
     body: JSON.stringify({}),
   });
   assert.equal(res.status, 402);
+});
+
+test("live: unknown shelf refusal surfaces HTTP status and charged:false (free 404, no payment)", async () => {
+  const { createGuard } = require("../x402-guard");
+  const g = createGuard({ baseUrl: BASE_URL, payTo: [] });
+  await assert.rejects(g.callPaid({}, "/no-such-shelf-zz", { method: "POST", body: {} }), /HTTP 404 \(charged:false\)/);
 });

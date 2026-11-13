@@ -5,7 +5,7 @@
 
 *A [ForgeMesh Labs](https://forgemesh.io) product.*
 
-**A paid public-domain knowledge base, built for agents.** Full-text search, book metadata, chapters, notable quotes, flagship "ask this book a question" retrieval, and 100+ curated subject shelves over a growing corpus of public-domain books — no license, no API key, no account. Pay per call in USDC on Base via [x402](https://x402.org).
+**A paid public-domain knowledge base, built for agents.** Full-text search, book metadata, chapters, notable quotes, flagship "ask this book a question" retrieval, and 280+ curated subject shelves over 61,000+ public-domain books — no license, no API key, no account. Pay per call in USDC on Base via [x402](https://x402.org).
 
 Retrieval only: every answer is a real, cited passage pulled from the indexed text. Nothing here is LLM-generated or summarized — that makes it safe to cite for tutoring agents, reading apps, quiz/curriculum generators, and any workflow where a hallucinated quote is worse than no quote.
 
@@ -35,16 +35,17 @@ Node.js 20+ and a dedicated, low-balance Base wallet funded with USDC. The serve
 
 | Tool | Cost | What it does |
 |---|---|---|
-| `search_literature` | $0.02 | Full-text search across the entire corpus — real passages, any book |
+| `search_literature` | $0.02 | Full-text search (1-8 words) across the entire corpus — real passages, any book; no match = 404, not charged |
 | `search_books` | $0.005 | Search the corpus by title or author substring |
 | `get_book_metadata` | $0.005 | Title, author, year, subjects, bookshelves, chapter range for a book_id |
 | `get_chapter` | $0.005 | Full text of one chapter by book_id + chapter number |
 | `get_quotes` | $0.005 | Notable passages from a book, optionally themed |
 | `ask_book` | $0.01 | Ask a flagship book (Moby Dick, the Republic, Sherlock Holmes...) a question, get cited passages back |
-| `browse_shelf` | $0.005 | Browse a curated category or subject shelf (gothic horror, Russian literature, detective fiction, 100+ shelves) |
+| `browse_shelf` | $0.005 | Browse a curated category or subject shelf (gothic horror, Russian literature, detective fiction, 280+ shelves) |
 | `book_of_the_day` | $0.005 | Deterministic daily book pick, date-seeded |
+| `library_card` | $0.005 | Mint a soulbound Reader's Card NFT on Base mainnet to the paying wallet (payment settles first, then mint; one card per wallet) |
 
-Prices are set by the live service and may change — the actual charge always comes from the x402 402 challenge at call time, not this table.
+Refusals (404 no match, 4xx validation) are reported with their HTTP status and `charged` state. Prices are set by the live service and may change — the actual charge always comes from the x402 402 challenge at call time, not this table.
 
 ## Who this is for
 
@@ -59,7 +60,7 @@ Nothing here requires an account, an API key, or a license negotiation — the e
 
 ## Corpus size
 
-The corpus is actively growing — it started at hundreds of books and is on a path from **17,000+ toward roughly 62,000** as more public-domain texts are indexed. Don't hardcode a book count anywhere downstream of this server; ask `search_books` or `search_literature` and let the live index answer.
+The corpus is **61,000+ public-domain books** (~62,000 target) and still growing. Don't hardcode a book count anywhere downstream of this server; ask `search_books` or `search_literature` and let the live index answer.
 
 ## Flagship books (`ask_book`)
 
@@ -69,7 +70,7 @@ Any other book: use `search_literature` or `search_books` + `get_chapter`/`get_q
 
 ## Shelves (`browse_shelf`)
 
-10 hand-picked categories (adventure, children's classics, classic literature, economics & politics, gothic horror, history, philosophy, poetry, science & nature, Shakespeare & drama) plus 100+ auto-generated subject shelves drawn from real Gutenberg subjects/bookshelves metadata (gothic fiction, Russian literature, detective fiction, banned books lists, and more).
+10 hand-picked categories (adventure, children's classics, classic literature, economics & politics, gothic horror, history, philosophy, poetry, science & nature, Shakespeare & drama) plus 270+ auto-generated subject shelves (book counts generated from the live index; an unknown shelf is a free 404) drawn from real Gutenberg subjects/bookshelves metadata (gothic fiction, Russian literature, detective fiction, banned books lists, and more).
 
 The full, current shelf catalog is free to browse — no payment, no tool call required:
 
