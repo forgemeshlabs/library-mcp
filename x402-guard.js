@@ -107,8 +107,14 @@ function createGuard(opts) {
     else if (!paidAttempt) charged = false;
     else { let settle = null; try { settle = httpClient.getPaymentSettleResponse((n) => res.headers.get(n)) || null; } catch { settle = null; } charged = settle ? true : "unknown (no settlement receipt)"; }
     const reason = body && typeof body === "object" ? (body.error || body.reason || body.message || body.invalidReason) : undefined;
-    const detail = reason ? (typeof reason === "string" ? reason : JSON.stringify(reason)) : res.text.slice(0, 500);
-    return new Error(`HTTP ${res.status} (charged:${charged}): ${detail}`);
+    // Fixed message (status, charged, optional short error code); the service body travels only as capped data.
+    const code = typeof reason === "string" && /^[a-z0-9_.:-]{1,64}$/i.test(reason) ? `: ${reason}` : "";
+    const err = new Error(`HTTP ${res.status} (charged:${charged})${code}`);
+    err.status = res.status;
+    err.charged = charged;
+    const raw = body && typeof body === "object" ? JSON.stringify(body) : res.text;
+    err.upstream = body && typeof body === "object" && raw.length <= 1500 ? body : raw.slice(0, body && typeof body === "object" ? 1500 : 500);
+    return err;
   }
 
   function parseJson(res) {
